@@ -1,576 +1,685 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Shorts App</title>
     <style>
-        *,
-        *::before,
-        *::after {
-            box-sizing: border-box;
-        }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
 
-        body,
-        html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            background: #000;
-            color: white;
-            overflow: hidden;
-            font-family: sans-serif;
-        }
+      body,
+      html {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        background: #000;
+        color: white;
+        overflow: hidden;
+        font-family: sans-serif;
+      }
 
-        #login-screen {
-            position: fixed;
-            inset: 0;
-            background: #111;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 20px;
-            z-index: 2000;
-        }
+      #login-screen {
+        position: fixed;
+        inset: 0;
+        background: #111;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        z-index: 2000;
+      }
 
-        #login-screen h1 {
-            font-size: 1.4rem;
-            font-weight: normal;
-            margin: 0;
-        }
+      #login-screen h1 {
+        font-size: 1.4rem;
+        font-weight: normal;
+        margin: 0;
+      }
 
-        #login-screen input {
-            width: 240px;
-            padding: 12px 16px;
-            background: #222;
-            border: 1px solid #444;
-            border-radius: 8px;
-            color: white;
-            font-size: 1rem;
-            outline: none;
-            text-align: center;
-        }
+      #login-screen input {
+        width: 240px;
+        padding: 12px 16px;
+        background: #222;
+        border: 1px solid #444;
+        border-radius: 8px;
+        color: white;
+        font-size: 1rem;
+        outline: none;
+        text-align: center;
+      }
 
-        #login-btn {
-            width: 240px;
-            padding: 12px;
-            background: white;
-            color: black;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            cursor: pointer;
-            font-weight: bold;
-        }
+      #login-btn {
+        width: 240px;
+        padding: 12px;
+        background: white;
+        color: black;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        cursor: pointer;
+        font-weight: bold;
+      }
 
-        #login-btn:disabled {
-            opacity: 0.5;
-            cursor: default;
-        }
+      #login-btn:disabled {
+        opacity: 0.5;
+        cursor: default;
+      }
 
-        #login-error {
-            color: #ff6b6b;
-            font-size: 0.85rem;
-            text-align: center;
-            min-height: 1.2em;
-        }
+      #login-error {
+        color: #ff6b6b;
+        font-size: 0.85rem;
+        text-align: center;
+        min-height: 1.2em;
+      }
 
-        #shorts-container {
-            height: 100vh;
-            overflow-y: scroll;
-            scroll-snap-type: y mandatory;
-            scroll-behavior: smooth;
-        }
+      #shorts-container {
+        height: 100vh;
+        overflow-y: scroll;
+        scroll-snap-type: y mandatory;
+        scroll-behavior: smooth;
+      }
 
-        .video-section {
-            height: 100vh;
-            width: 100vw;
-            scroll-snap-align: start;
-            position: relative;
-            overflow: hidden;
-            background: #000;
-        }
+      .video-section {
+        height: 100vh;
+        width: 100vw;
+        scroll-snap-align: start;
+        position: relative;
+        overflow: hidden;
+        background: #000;
+      }
 
-        .player-wrap {
-            position: absolute;
-            inset: 0;
-        }
+      .player-wrap {
+        position: absolute;
+        inset: 0;
+      }
 
-        .player-wrap>div {
-            width: 100% !important;
-            height: 100% !important;
-        }
+      .player-wrap > div {
+        width: 100% !important;
+        height: 100% !important;
+      }
 
-        .player-wrap>iframe {
-            width: 100% !important;
-            height: 100% !important;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            /* 縦長画面に合わせてクロップしたい場合 */
-            min-width: 177.78vh;
-            /* 16/9 * 100vh */
-            min-height: 56.25vw;
-            /* 9/16 * 100vw */
-        }
+      .player-wrap > iframe {
+        width: 100% !important;
+        height: 100% !important;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        /* 縦長画面に合わせてクロップしたい場合 */
+        min-width: 177.78vh;
+        /* 16/9 * 100vh */
+        min-height: 56.25vw;
+        /* 9/16 * 100vw */
+      }
 
-        .info {
-            position: absolute;
-            bottom: 90px;
-            left: 15px;
-            right: 80px;
-            text-shadow: 2px 2px 4px #000;
-            z-index: 10;
-            pointer-events: none;
-        }
+      .info {
+        position: absolute;
+        bottom: 90px;
+        left: 15px;
+        right: 80px;
+        text-shadow: 2px 2px 4px #000;
+        z-index: 10;
+        pointer-events: none;
+      }
 
-        .info h3 {
-            margin: 0;
-            font-size: 1rem;
-            font-weight: normal;
-            line-height: 1.4;
-        }
+      .info h3 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: normal;
+        line-height: 1.4;
+      }
 
-        .seek-bar-wrap {
-            position: absolute;
-            bottom: 50px;
-            left: 15px;
-            right: 80px;
-            z-index: 20;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+      .seek-bar-wrap {
+        position: absolute;
+        bottom: 50px;
+        left: 15px;
+        right: 80px;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
 
-        .seek-bar-wrap input[type="range"] {
-            flex: 1;
-            -webkit-appearance: none;
-            appearance: none;
-            height: 3px;
-            border-radius: 2px;
-            outline: none;
-            background: linear-gradient(to right, rgba(255, 255, 255, 0.9) var(--progress, 0%), rgba(255, 255, 255, 0.3) var(--progress, 0%));
-        }
+      .seek-bar-wrap input[type="range"] {
+        flex: 1;
+        -webkit-appearance: none;
+        appearance: none;
+        height: 3px;
+        border-radius: 2px;
+        outline: none;
+        background: linear-gradient(
+          to right,
+          rgba(255, 255, 255, 0.9) var(--progress, 0%),
+          rgba(255, 255, 255, 0.3) var(--progress, 0%)
+        );
+      }
 
-        .seek-bar-wrap input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            background: #fff;
-            cursor: pointer;
-        }
+      .seek-bar-wrap input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: #fff;
+        cursor: pointer;
+      }
 
-        .time-label {
-            font-size: 11px;
-            color: rgba(255, 255, 255, 0.85);
-            min-width: 72px;
-            text-align: right;
-        }
+      .time-label {
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.85);
+        min-width: 72px;
+        text-align: right;
+      }
 
-        .nav-controls {
-            position: absolute;
-            right: 15px;
-            bottom: 50px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            z-index: 100;
-        }
+      .nav-controls {
+        position: absolute;
+        right: 15px;
+        bottom: 50px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        z-index: 100;
+      }
 
-        .nav-btn {
-            width: 44px;
-            height: 44px;
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            color: white;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(8px);
-        }
+      .nav-btn {
+        width: 44px;
+        height: 44px;
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        color: white;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(8px);
+      }
 
-        #logout-btn {
-            position: fixed;
-            top: 12px;
-            right: 12px;
-            z-index: 500;
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            border-radius: 20px;
-            padding: 6px 14px;
-            font-size: 0.75rem;
-            cursor: pointer;
-            display: none;
-        }
+      #logout-btn {
+        position: fixed;
+        top: 12px;
+        right: 12px;
+        z-index: 500;
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        border-radius: 20px;
+        padding: 6px 14px;
+        font-size: 0.75rem;
+        cursor: pointer;
+        display: none;
+      }
 
-        #start-overlay {
-            position: fixed;
-            inset: 0;
-            background: #000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            cursor: pointer;
-        }
+      #start-overlay {
+        position: fixed;
+        inset: 0;
+        background: #000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        cursor: pointer;
+      }
 
-        /* シート切り替えモーダル */
-        #sheet-modal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 1500;
-            align-items: center;
-            justify-content: center;
-        }
+      /* シート切り替えモーダル */
+      #sheet-modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 1500;
+        align-items: center;
+        justify-content: center;
+      }
 
-        #sheet-modal.open {
-            display: flex;
-        }
+      #sheet-modal.open {
+        display: flex;
+      }
 
-        .modal-box {
-            background: #1a1a1a;
-            border: 1px solid #333;
-            border-radius: 16px;
-            padding: 28px 24px;
-            width: 280px;
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-        }
+      .modal-box {
+        background: #1a1a1a;
+        border: 1px solid #333;
+        border-radius: 16px;
+        padding: 28px 24px;
+        width: 280px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
 
-        .modal-box h2 {
-            margin: 0;
-            font-size: 1rem;
-            font-weight: normal;
-            color: #ccc;
-            text-align: center;
-        }
+      .modal-box h2 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: normal;
+        color: #ccc;
+        text-align: center;
+      }
 
-        .modal-choice-btn {
-            width: 100%;
-            padding: 14px;
-            border-radius: 10px;
-            border: 1px solid #444;
-            background: #2a2a2a;
-            color: white;
-            font-size: 0.95rem;
-            cursor: pointer;
-            text-align: left;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            transition: background 0.15s;
-        }
+      .modal-choice-btn {
+        width: 100%;
+        padding: 14px;
+        border-radius: 10px;
+        border: 1px solid #444;
+        background: #2a2a2a;
+        color: white;
+        font-size: 0.95rem;
+        cursor: pointer;
+        text-align: left;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: background 0.15s;
+      }
 
-        .modal-choice-btn:hover {
-            background: #3a3a3a;
-        }
+      .modal-choice-btn:hover {
+        background: #3a3a3a;
+      }
 
-        .modal-choice-btn.active {
-            border-color: #fff;
-            background: #333;
-        }
+      .modal-choice-btn.active {
+        border-color: #fff;
+        background: #333;
+      }
 
-        .modal-choice-btn .icon {
-            font-size: 1.2rem;
-        }
+      .modal-choice-btn .icon {
+        font-size: 1.2rem;
+      }
 
-        .modal-cancel {
-            background: none;
-            border: none;
-            color: #666;
-            font-size: 0.85rem;
-            cursor: pointer;
-            text-align: center;
-            padding: 4px;
-        }
+      .modal-cancel {
+        background: none;
+        border: none;
+        color: #666;
+        font-size: 0.85rem;
+        cursor: pointer;
+        text-align: center;
+        padding: 4px;
+      }
 
-        .modal-cancel:hover {
-            color: #999;
-        }
+      .modal-cancel:hover {
+        color: #999;
+      }
     </style>
-</head>
+  </head>
 
-<body>
-
+  <body>
     <div id="login-screen">
-        <h1>🎬 Shorts App</h1>
-        <input type="text" id="nickname-input" placeholder="ニックネームを入力">
-        <div id="login-error"></div>
-        <button id="login-btn">再生開始</button>
+      <h1>🎬 Shorts App</h1>
+      <input type="text" id="nickname-input" placeholder="ニックネームを入力" />
+      <div id="login-error"></div>
+      <button id="login-btn">再生開始</button>
     </div>
 
     <button id="logout-btn">← 変更</button>
 
     <!-- シート切り替えモーダル -->
     <div id="sheet-modal">
-        <div class="modal-box">
-            <h2>表示する一覧を選択</h2>
-            <button class="modal-choice-btn" id="btn-video-list" onclick="switchSheet('video')">
-                <span class="icon">🎬</span>
-                <span>動画一覧</span>
-            </button>
-            <button class="modal-choice-btn" id="btn-search-result" onclick="switchSheet('search')">
-                <span class="icon">🔍</span>
-                <span>検索結果</span>
-            </button>
-            <button class="modal-cancel" onclick="closeModal()">キャンセル</button>
-        </div>
+      <div class="modal-box">
+        <h2>表示する一覧を選択</h2>
+        <button
+          class="modal-choice-btn"
+          id="btn-video-list"
+          onclick="switchSheet('video')"
+        >
+          <span class="icon">🎬</span>
+          <span>動画一覧</span>
+        </button>
+        <button
+          class="modal-choice-btn"
+          id="btn-search-result"
+          onclick="switchSheet('search')"
+        >
+          <span class="icon">🔍</span>
+          <span>検索結果</span>
+        </button>
+        <button class="modal-cancel" onclick="closeModal()">キャンセル</button>
+      </div>
     </div>
-    <div id="start-overlay" style="display:none;">▶ タップして再生</div>
+    <div id="start-overlay" style="display: none">▶ タップして再生</div>
     <div id="shorts-container"></div>
 
     <script src="https://www.youtube.com/iframe_api"></script>
     <script>
-        const SHEET_KEY = '1oPqrlIMGIFm1qK9teaLY_AqmYqYPmEzqviZaAzlAAzU';
-        const PLAY_DELAY_MS = 300;
+      const SHEET_KEY =
+        "2PACX-1vQEC0pJhAc7HDOPpHHtr3elaEGuW_WAhlt745tdhMkIYTwZWpy7FWGOOilMrIp7LxdW0bbRR40V7LY0";
+      const PLAY_DELAY_MS = 300;
 
-        let videoDataList = [], loadedCount = 0, isStarted = false, ytReady = false;
-        const players = {}, pendingPlayers = [], playTimers = {};
-        let scrollTimer = null;
+      let videoDataList = [],
+        loadedCount = 0,
+        isStarted = false,
+        ytReady = false;
+      const players = {},
+        pendingPlayers = [],
+        playTimers = {};
+      let scrollTimer = null;
 
-        // ログインユーザーの情報を保持
-        let currentVideoGid = null;   // 動画一覧のGID（B列）
-        let currentSearchGid = null;  // 検索結果のGID（C列）
-        let currentSheet = 'video';   // 現在表示中のシート
-        let isRandom = false;         // ランダム再生フラグ
+      // ログインユーザーの情報を保持
+      let currentVideoGid = null; // 動画一覧のGID（B列）
+      let currentSearchGid = null; // 検索結果のGID（C列）
+      let currentSheet = "video"; // 現在表示中のシート
+      let isRandom = false; // ランダム再生フラグ
 
-        // Fisher-Yates シャッフル
-        function shuffle(arr) {
-            for (let i = arr.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [arr[i], arr[j]] = [arr[j], arr[i]];
-            }
-            return arr;
+      // Fisher-Yates シャッフル
+      function shuffle(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+      }
+
+      // CSV解析
+      function parseCSV(t) {
+        const rows = [];
+        let r = [],
+          f = "",
+          q = false;
+        for (let i = 0; i < t.length; i++) {
+          const c = t[i],
+            n = t[i + 1];
+          if (q) {
+            if (c === '"' && n === '"') {
+              f += '"';
+              i++;
+            } else if (c === '"') q = false;
+            else f += c;
+          } else {
+            if (c === '"') q = true;
+            else if (c === ",") {
+              r.push(f);
+              f = "";
+            } else if (c === "\n" || (c === "\r" && n === "\n")) {
+              r.push(f);
+              f = "";
+              rows.push(r);
+              r = [];
+              if (c === "\r") i++;
+            } else f += c;
+          }
+        }
+        if (f !== "" || r.length > 0) {
+          r.push(f);
+          rows.push(r);
+        }
+        return rows;
+      }
+
+      function isVideoListSheet(rows) {
+        if (!rows.length || !rows[0].length) return false;
+        const header = rows[0].map((c) => (c || "").trim().toLowerCase());
+        return header.includes("videoid") || header.includes("shortsurl");
+      }
+
+      function getVideoListFromRows(rows) {
+        return rows
+          .slice(1)
+          .map((cols) => {
+            const idMatch = (cols[2] || "").match(/[a-zA-Z0-9_-]{11}/);
+            return idMatch && (cols[0] || "").trim()
+              ? { id: idMatch[0], title: cols[0].trim() }
+              : null;
+          })
+          .filter((v) => v);
+      }
+
+      // ログイン処理
+      async function handleLogin() {
+        const input = document.getElementById("nickname-input");
+        const btn = document.getElementById("login-btn");
+        const error = document.getElementById("login-error");
+        const nickname = input.value.trim();
+
+        if (!nickname) {
+          error.textContent = "名前を入力してください";
+          return;
         }
 
-        // CSV解析
-        function parseCSV(t) {
-            const rows = []; let r = [], f = '', q = false;
-            for (let i = 0; i < t.length; i++) {
-                const c = t[i], n = t[i + 1];
-                if (q) { if (c === '"' && n === '"') { f += '"'; i++; } else if (c === '"') q = false; else f += c; }
-                else { if (c === '"') q = true; else if (c === ',') { r.push(f); f = ''; } else if (c === '\n' || (c === '\r' && n === '\n')) { r.push(f); f = ''; rows.push(r); r = []; if (c === '\r') i++; } else f += c; }
+        btn.disabled = true;
+        error.textContent = "読み込み中...";
+
+        try {
+          // ユーザーリスト取得
+          const userRes = await fetch(
+            `https://docs.google.com/spreadsheets/d/e/${SHEET_KEY}/pub?output=csv&gid=0&t=${Date.now()}`,
+          );
+          if (!userRes.ok) throw new Error("シートにアクセスできません");
+
+          const userRaw = await userRes.text();
+          const userRows = parseCSV(userRaw);
+
+          let videoGid = null,
+            searchGid = null;
+          if (isVideoListSheet(userRows)) {
+            // 直接動画一覧CSVが公開されている場合のフォールバック
+            videoDataList = getVideoListFromRows(userRows);
+            currentVideoGid = "0";
+            currentSearchGid = null;
+            currentSheet = "video";
+            isRandom = ["today", "default"].includes(nickname.toLowerCase());
+          } else {
+            for (const row of userRows) {
+              if ((row[0] || "").trim() === nickname) {
+                videoGid = (row[1] || "").trim();
+                searchGid = (row[2] || "").trim(); // 検索結果シートのGID（C列）
+                break;
+              }
             }
-            if (f !== '' || r.length > 0) { r.push(f); rows.push(r); }
-            return rows;
-        }
 
-        // ログイン処理
-        async function handleLogin() {
-            const input = document.getElementById('nickname-input');
-            const btn = document.getElementById('login-btn');
-            const error = document.getElementById('login-error');
-            const nickname = input.value.trim();
-
-            if (!nickname) { error.textContent = '名前を入力してください'; return; }
-
-            btn.disabled = true;
-            error.textContent = '読み込み中...';
-
-            try {
-                // ユーザーリスト取得
-                const userRes = await fetch(`https://docs.google.com/spreadsheets/d/e/${SHEET_KEY}/pub?output=csv&gid=0&t=${Date.now()}`);
-                if (!userRes.ok) throw new Error('シートにアクセスできません');
-
-                const userRaw = await userRes.text();
-                const userRows = parseCSV(userRaw);
-
-                let videoGid = null, searchGid = null;
-                for (const row of userRows) {
-                    if ((row[0] || '').trim() === nickname) {
-                        videoGid = (row[1] || '').trim();
-                        searchGid = (row[2] || '').trim(); // 検索結果シートのGID（C列）
-                        break;
-                    }
-                }
-
-                if (!videoGid) {
-                    error.textContent = 'ユーザーが見つかりません';
-                    btn.disabled = false;
-                    return;
-                }
-
-                currentVideoGid = videoGid;
-                currentSearchGid = searchGid;
-                currentSheet = 'video';
-                isRandom = ['today', 'default'].includes(nickname.toLowerCase());
-
-                // 動画リスト取得
-                const vidRes = await fetch(`https://docs.google.com/spreadsheets/d/e/${SHEET_KEY}/pub?output=csv&gid=${currentVideoGid}&t=${Date.now()}`);
-                const vidRaw = await vidRes.text();
-                const vidRows = parseCSV(vidRaw);
-
-                videoDataList = vidRows.slice(1).map(cols => {
-                    const idMatch = (cols[2] || '').match(/[a-zA-Z0-9_-]{11}/);
-                    return (idMatch && (cols[0] || '').trim()) ? { id: idMatch[0], title: cols[0].trim() } : null;
-                }).filter(v => v);
-
-                if (isRandom) shuffle(videoDataList);
-
-                if (videoDataList.length === 0) {
-                    error.textContent = '再生可能な動画がありません';
-                    btn.disabled = false;
-                    return;
-                }
-
-                // 画面切り替え
-                document.getElementById('login-screen').style.display = 'none';
-                document.getElementById('start-overlay').style.display = 'flex';
-                document.getElementById('logout-btn').style.display = 'block';
-
-                appendVideo(); appendVideo();
-
-            } catch (e) {
-                console.error(e);
-                error.textContent = '通信エラーが発生しました';
-                btn.disabled = false;
+            if (!videoGid) {
+              error.textContent = "ユーザーが見つかりません";
+              btn.disabled = false;
+              return;
             }
-        }
 
-        // イベントリスナーの登録（DOM読み込み完了後）
-        window.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('login-btn').addEventListener('click', handleLogin);
-            document.getElementById('nickname-input').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') handleLogin();
-            });
+            currentVideoGid = videoGid;
+            currentSearchGid = searchGid;
+            currentSheet = "video";
+            isRandom = ["today", "default"].includes(nickname.toLowerCase());
+
+            // 動画リスト取得
+            const vidRes = await fetch(
+              `https://docs.google.com/spreadsheets/d/e/${SHEET_KEY}/pub?output=csv&gid=${currentVideoGid}&t=${Date.now()}`,
+            );
+            const vidRaw = await vidRes.text();
+            const vidRows = parseCSV(vidRaw);
+
+            videoDataList = vidRows
+              .slice(1)
+              .map((cols) => {
+                const idMatch = (cols[2] || "").match(/[a-zA-Z0-9_-]{11}/);
+                return idMatch && (cols[0] || "").trim()
+                  ? { id: idMatch[0], title: cols[0].trim() }
+                  : null;
+              })
+              .filter((v) => v);
+          }
+
+          if (isRandom) shuffle(videoDataList);
+
+          if (videoDataList.length === 0) {
+            error.textContent = "再生可能な動画がありません";
+            btn.disabled = false;
+            return;
+          }
+
+          // 画面切り替え
+          document.getElementById("login-screen").style.display = "none";
+          document.getElementById("start-overlay").style.display = "flex";
+          document.getElementById("logout-btn").style.display = "block";
+
+          appendVideo();
+          appendVideo();
+        } catch (e) {
+          console.error(e);
+          error.textContent = "通信エラーが発生しました";
+          btn.disabled = false;
+        }
+      }
+
+      // イベントリスナーの登録（DOM読み込み完了後）
+      window.addEventListener("DOMContentLoaded", () => {
+        document
+          .getElementById("login-btn")
+          .addEventListener("click", handleLogin);
+        document
+          .getElementById("nickname-input")
+          .addEventListener("keypress", (e) => {
+            if (e.key === "Enter") handleLogin();
+          });
+      });
+
+      document.getElementById("start-overlay").addEventListener("click", () => {
+        isStarted = true;
+        document.getElementById("start-overlay").style.display = "none";
+        if (players[0]) {
+          try {
+            players[0].unMute();
+            // すでにautoplayで再生中の場合はplayVideoは不要
+            // 停止していた場合に備えて呼ぶ
+            if (players[0].getPlayerState() !== 1) {
+              players[0].playVideo();
+            }
+          } catch (_) {}
+        }
+      });
+
+      document
+        .getElementById("logout-btn")
+        .addEventListener("click", () => openModal());
+
+      // モーダル開閉
+      function openModal() {
+        // 現在のシートをハイライト
+        document
+          .getElementById("btn-video-list")
+          .classList.toggle("active", currentSheet === "video");
+        document
+          .getElementById("btn-search-result")
+          .classList.toggle("active", currentSheet === "search");
+        document.getElementById("sheet-modal").classList.add("open");
+      }
+
+      function closeModal() {
+        document.getElementById("sheet-modal").classList.remove("open");
+      }
+
+      // シート切り替え（ページリロードなしで動画リストを入れ替え）
+      async function switchSheet(type) {
+        closeModal();
+
+        const gid = type === "search" ? currentSearchGid : currentVideoGid;
+        if (!gid) {
+          alert(
+            "このシートは設定されていません（スプレッドシートのC列にGIDを追加してください）",
+          );
+          return;
+        }
+        if (type === currentSheet) return; // 同じシートなら何もしない
+
+        // 既存の動画を全停止・削除
+        Object.values(players).forEach((p) => {
+          try {
+            p.stopVideo();
+            p.destroy();
+          } catch (_) {}
         });
+        Object.keys(players).forEach((k) => delete players[k]);
+        pendingPlayers.length = 0;
+        Object.values(playTimers).forEach(clearTimeout);
+        document.getElementById("shorts-container").innerHTML = "";
+        videoDataList = [];
+        loadedCount = 0;
+        isStarted = false;
 
-        document.getElementById('start-overlay').addEventListener('click', () => {
-            isStarted = true;
-            document.getElementById('start-overlay').style.display = 'none';
-            if (players[0]) {
-                try {
-                    players[0].unMute();
-                    // すでにautoplayで再生中の場合はplayVideoは不要
-                    // 停止していた場合に備えて呼ぶ
-                    if (players[0].getPlayerState() !== 1) {
-                        players[0].playVideo();
-                    }
-                } catch (_) { }
-            }
+        // 新しいシートのデータを取得
+        try {
+          const res = await fetch(
+            `https://docs.google.com/spreadsheets/d/e/${SHEET_KEY}/pub?output=csv&gid=${gid}&t=${Date.now()}`,
+          );
+          const raw = await res.text();
+          const rows = parseCSV(raw);
+
+          videoDataList = rows
+            .slice(1)
+            .map((cols) => {
+              const idMatch = (cols[2] || "").match(/[a-zA-Z0-9_-]{11}/);
+              return idMatch && (cols[0] || "").trim()
+                ? { id: idMatch[0], title: cols[0].trim() }
+                : null;
+            })
+            .filter((v) => v);
+
+          if (videoDataList.length === 0) {
+            alert("再生可能な動画がありません");
+            return;
+          }
+
+          if (isRandom) shuffle(videoDataList);
+
+          currentSheet = type;
+
+          // スタートオーバーレイを再表示
+          document.getElementById("start-overlay").style.display = "flex";
+
+          appendVideo();
+          appendVideo();
+        } catch (e) {
+          console.error(e);
+          alert("データの取得に失敗しました");
+        }
+      }
+
+      function createPlayer(idx, videoId) {
+        new YT.Player(`player-div-${idx}`, {
+          videoId,
+          playerVars: {
+            autoplay: 1, // ← 戻す（メタデータのプリロードに必要）
+            mute: 1,
+            controls: 0,
+            playsinline: 1,
+            rel: 0,
+            enablejsapi: 1,
+            origin: window.location.origin, // ← 追加
+          },
+          events: {
+            onReady(e) {
+              players[idx] = e.target;
+              if (idx === 0 && isStarted) {
+                // スタート済みなら音あり再生
+                e.target.unMute();
+                e.target.playVideo();
+              } else if (idx !== 0) {
+                // 表示中でない動画はメタデータ取得後に停止
+                // ※ 即pauseではなく少し待ってから止めることでdurationが取れる
+                setTimeout(() => {
+                  try {
+                    e.target.pauseVideo();
+                  } catch (_) {}
+                }, 300);
+              }
+              // idx===0 かつ isStarted===false の場合は
+              // ユーザーがオーバーレイをタップするまでミュート再生のまま待機
+            },
+            onStateChange(e) {
+              if (e.data === 0) {
+                e.target.seekTo(0);
+                e.target.playVideo();
+              }
+            },
+          },
         });
+      }
 
-        document.getElementById('logout-btn').addEventListener('click', () => openModal());
-
-        // モーダル開閉
-        function openModal() {
-            // 現在のシートをハイライト
-            document.getElementById('btn-video-list').classList.toggle('active', currentSheet === 'video');
-            document.getElementById('btn-search-result').classList.toggle('active', currentSheet === 'search');
-            document.getElementById('sheet-modal').classList.add('open');
-        }
-
-        function closeModal() {
-            document.getElementById('sheet-modal').classList.remove('open');
-        }
-
-        // シート切り替え（ページリロードなしで動画リストを入れ替え）
-        async function switchSheet(type) {
-            closeModal();
-
-            const gid = type === 'search' ? currentSearchGid : currentVideoGid;
-            if (!gid) {
-                alert('このシートは設定されていません（スプレッドシートのC列にGIDを追加してください）');
-                return;
-            }
-            if (type === currentSheet) return; // 同じシートなら何もしない
-
-            // 既存の動画を全停止・削除
-            Object.values(players).forEach(p => { try { p.stopVideo(); p.destroy(); } catch (_) { } });
-            Object.keys(players).forEach(k => delete players[k]);
-            pendingPlayers.length = 0;
-            Object.values(playTimers).forEach(clearTimeout);
-            document.getElementById('shorts-container').innerHTML = '';
-            videoDataList = [];
-            loadedCount = 0;
-            isStarted = false;
-
-            // 新しいシートのデータを取得
-            try {
-                const res = await fetch(`https://docs.google.com/spreadsheets/d/e/${SHEET_KEY}/pub?output=csv&gid=${gid}&t=${Date.now()}`);
-                const raw = await res.text();
-                const rows = parseCSV(raw);
-
-                videoDataList = rows.slice(1).map(cols => {
-                    const idMatch = (cols[2] || '').match(/[a-zA-Z0-9_-]{11}/);
-                    return (idMatch && (cols[0] || '').trim()) ? { id: idMatch[0], title: cols[0].trim() } : null;
-                }).filter(v => v);
-
-                if (videoDataList.length === 0) {
-                    alert('再生可能な動画がありません');
-                    return;
-                }
-
-                if (isRandom) shuffle(videoDataList);
-
-                currentSheet = type;
-
-                // スタートオーバーレイを再表示
-                document.getElementById('start-overlay').style.display = 'flex';
-
-                appendVideo(); appendVideo();
-
-            } catch (e) {
-                console.error(e);
-                alert('データの取得に失敗しました');
-            }
-        }
-
-        function createPlayer(idx, videoId) {
-            new YT.Player(`player-div-${idx}`, {
-                videoId,
-                playerVars: {
-                    autoplay: 1,   // ← 戻す（メタデータのプリロードに必要）
-                    mute: 1,
-                    controls: 0,
-                    playsinline: 1,
-                    rel: 0,
-                    enablejsapi: 1,
-                    origin: window.location.origin  // ← 追加
-                },
-                events: {
-                    onReady(e) {
-                        players[idx] = e.target;
-                        if (idx === 0 && isStarted) {
-                            // スタート済みなら音あり再生
-                            e.target.unMute();
-                            e.target.playVideo();
-                        } else if (idx !== 0) {
-                            // 表示中でない動画はメタデータ取得後に停止
-                            // ※ 即pauseではなく少し待ってから止めることでdurationが取れる
-                            setTimeout(() => {
-                                try { e.target.pauseVideo(); } catch (_) { }
-                            }, 300);
-                        }
-                        // idx===0 かつ isStarted===false の場合は
-                        // ユーザーがオーバーレイをタップするまでミュート再生のまま待機
-                    },
-                    onStateChange(e) {
-                        if (e.data === 0) { e.target.seekTo(0); e.target.playVideo(); }
-                    }
-                }
-            });
-        }
-
-        function appendVideo() {
-            if (loadedCount >= videoDataList.length) return;
-            const data = videoDataList[loadedCount];
-            const idx = loadedCount;
-            const section = document.createElement('div');
-            section.className = 'video-section';
-            section.dataset.index = idx;
-            section.innerHTML = `
+      function appendVideo() {
+        if (loadedCount >= videoDataList.length) return;
+        const data = videoDataList[loadedCount];
+        const idx = loadedCount;
+        const section = document.createElement("div");
+        section.className = "video-section";
+        section.dataset.index = idx;
+        section.innerHTML = `
             <div class="player-wrap"><div id="player-div-${idx}"></div></div>
             <div class="info"><h3>${data.title}</h3></div>
             <div class="seek-bar-wrap">
@@ -581,100 +690,123 @@
                 <button class="nav-btn" onclick="moveScroll(-1)">▲</button>
                 <button class="nav-btn" onclick="moveScroll(1)">▼</button>
             </div>`;
-            document.getElementById('shorts-container').appendChild(section);
+        document.getElementById("shorts-container").appendChild(section);
 
-            // シークバーのイベントリスナーを付与
-            const seekEl = document.getElementById(`seek-${idx}`);
-            seekEl.addEventListener('input', () => {
-                const p = players[idx];
-                if (!p) return;
-                try {
-                    const dur = p.getDuration();
-                    if (dur) {
-                        const pct = parseFloat(seekEl.value);
-                        seekEl.style.setProperty('--progress', pct + '%');
-                    }
-                } catch (_) { }
+        // シークバーのイベントリスナーを付与
+        const seekEl = document.getElementById(`seek-${idx}`);
+        seekEl.addEventListener("input", () => {
+          const p = players[idx];
+          if (!p) return;
+          try {
+            const dur = p.getDuration();
+            if (dur) {
+              const pct = parseFloat(seekEl.value);
+              seekEl.style.setProperty("--progress", pct + "%");
+            }
+          } catch (_) {}
+        });
+        seekEl.addEventListener("change", () => {
+          const p = players[idx];
+          if (!p) return;
+          try {
+            const dur = p.getDuration();
+            if (dur) {
+              const pct = parseFloat(seekEl.value);
+              p.seekTo((pct / 100) * dur, true);
+            }
+          } catch (_) {}
+        });
+        if (ytReady) createPlayer(idx, data.id);
+        else pendingPlayers.push({ idx, videoId: data.id });
+        loadedCount++;
+      }
+
+      function moveScroll(dir) {
+        document
+          .getElementById("shorts-container")
+          .scrollBy({ top: window.innerHeight * dir, behavior: "smooth" });
+      }
+
+      document
+        .getElementById("shorts-container")
+        .addEventListener("scroll", () => {
+          if (!isStarted) return;
+          Object.values(playTimers).forEach(clearTimeout);
+          Object.values(players).forEach((p) => {
+            try {
+              p.pauseVideo();
+            } catch (_) {}
+          });
+
+          clearTimeout(scrollTimer);
+          scrollTimer = setTimeout(() => {
+            let bestIdx = -1,
+              bestDist = Infinity;
+            document.querySelectorAll(".video-section").forEach((s) => {
+              const dist = Math.abs(s.getBoundingClientRect().top);
+              if (dist < bestDist) {
+                bestDist = dist;
+                bestIdx = parseInt(s.dataset.index);
+              }
             });
-            seekEl.addEventListener('change', () => {
-                const p = players[idx];
-                if (!p) return;
-                try {
-                    const dur = p.getDuration();
-                    if (dur) {
-                        const pct = parseFloat(seekEl.value);
-                        p.seekTo((pct / 100) * dur, true);
-                    }
-                } catch (_) { }
-            });
-            if (ytReady) createPlayer(idx, data.id); else pendingPlayers.push({ idx, videoId: data.id });
-            loadedCount++;
-        }
+            if (bestIdx < 0) return;
 
-        function moveScroll(dir) {
-            document.getElementById('shorts-container').scrollBy({ top: window.innerHeight * dir, behavior: 'smooth' });
-        }
+            if (bestIdx >= loadedCount - 1) appendVideo();
 
-        document.getElementById('shorts-container').addEventListener('scroll', () => {
-            if (!isStarted) return;
-            Object.values(playTimers).forEach(clearTimeout);
-            Object.values(players).forEach(p => { try { p.pauseVideo(); } catch (_) { } });
-
-            clearTimeout(scrollTimer);
-            scrollTimer = setTimeout(() => {
-                let bestIdx = -1, bestDist = Infinity;
-                document.querySelectorAll('.video-section').forEach(s => {
-                    const dist = Math.abs(s.getBoundingClientRect().top);
-                    if (dist < bestDist) { bestDist = dist; bestIdx = parseInt(s.dataset.index); }
-                });
-                if (bestIdx < 0) return;
-
-                if (bestIdx >= loadedCount - 1) appendVideo();
-
-                const pTarget = players[bestIdx];
-                if (pTarget) {
-                    try {
-                        pTarget.seekTo(0, true);
-                        const slider = document.getElementById(`seek-${bestIdx}`);
-                        if (slider) { slider.value = 0; slider.style.setProperty('--progress', '0%'); }
-                    } catch (_) { }
+            const pTarget = players[bestIdx];
+            if (pTarget) {
+              try {
+                pTarget.seekTo(0, true);
+                const slider = document.getElementById(`seek-${bestIdx}`);
+                if (slider) {
+                  slider.value = 0;
+                  slider.style.setProperty("--progress", "0%");
                 }
+              } catch (_) {}
+            }
 
-                playTimers[bestIdx] = setTimeout(() => {
-                    const p = players[bestIdx];
-                    if (p && isStarted) { try { p.unMute(); p.playVideo(); } catch (_) { } }
-                }, PLAY_DELAY_MS);
-            }, 100);
+            playTimers[bestIdx] = setTimeout(() => {
+              const p = players[bestIdx];
+              if (p && isStarted) {
+                try {
+                  p.unMute();
+                  p.playVideo();
+                } catch (_) {}
+              }
+            }, PLAY_DELAY_MS);
+          }, 100);
         });
 
-        setInterval(() => {
-            Object.entries(players).forEach(([idx, p]) => {
-                try {
-                    if (p.getPlayerState() !== 1) return;
-                    const cur = p.getCurrentTime(), dur = p.getDuration();
-                    if (!dur) return;
-                    const pct = (cur / dur) * 100;
-                    const slider = document.getElementById(`seek-${idx}`);
-                    const label = document.getElementById(`time-${idx}`);
-                    if (slider && !slider.matches(':active')) {
-                        slider.value = pct; slider.style.setProperty('--progress', pct + '%');
-                    }
-                    const f = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
-                    if (label) label.textContent = `${f(cur)} / ${f(dur)}`;
-                } catch (_) { }
-            });
-        }, 500);
+      setInterval(() => {
+        Object.entries(players).forEach(([idx, p]) => {
+          try {
+            if (p.getPlayerState() !== 1) return;
+            const cur = p.getCurrentTime(),
+              dur = p.getDuration();
+            if (!dur) return;
+            const pct = (cur / dur) * 100;
+            const slider = document.getElementById(`seek-${idx}`);
+            const label = document.getElementById(`time-${idx}`);
+            if (slider && !slider.matches(":active")) {
+              slider.value = pct;
+              slider.style.setProperty("--progress", pct + "%");
+            }
+            const f = (s) =>
+              `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+            if (label) label.textContent = `${f(cur)} / ${f(dur)}`;
+          } catch (_) {}
+        });
+      }, 500);
 
-        window.onYouTubeIframeAPIReady = () => {
-            ytReady = true;
-            pendingPlayers.forEach(p => createPlayer(p.idx, p.videoId));
-            pendingPlayers.length = 0;
-        };
+      window.onYouTubeIframeAPIReady = () => {
+        ytReady = true;
+        pendingPlayers.forEach((p) => createPlayer(p.idx, p.videoId));
+        pendingPlayers.length = 0;
+      };
 
-        if (window.YT && window.YT.Player) {
-            window.onYouTubeIframeAPIReady();
-        }
+      if (window.YT && window.YT.Player) {
+        window.onYouTubeIframeAPIReady();
+      }
     </script>
-</body>
-
+  </body>
 </html>
